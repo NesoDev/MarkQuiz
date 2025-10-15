@@ -108,7 +108,6 @@
         }
 
         .quiz-content {
-            padding: 40px;
             display: none;
         }
 
@@ -128,7 +127,9 @@
             margin-top: 10px;
         }
 
-        .question {
+        .quiz-body {
+            padding: 40px;
+        }
             background: #f8f9fa;
             padding: 25px;
             margin-bottom: 25px;
@@ -318,11 +319,21 @@
             transform: scale(1.05);
         }
 
+        .progress-container {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-bottom: 3px solid #667eea;
+        }
+
         .progress-bar {
             background: #e0e0e0;
             height: 8px;
             border-radius: 10px;
-            margin: 20px 0;
+            margin: 10px 0;
             overflow: hidden;
         }
 
@@ -336,6 +347,7 @@
             text-align: center;
             color: #666;
             margin-top: 10px;
+            font-weight: 600;
         }
 
         @media (max-width: 768px) {
@@ -383,19 +395,23 @@ Correcta: a
         </div>
 
         <div class="quiz-content" id="quizContent">
-            <div class="student-info">
-                <label for="studentName"><strong>Nombre del estudiante:</strong></label>
-                <input type="text" id="studentName" placeholder="Ingresa tu nombre completo">
+            <div class="progress-container">
+                <div class="student-info">
+                    <label for="studentName"><strong>Nombre del estudiante:</strong></label>
+                    <input type="text" id="studentName" placeholder="Ingresa tu nombre completo">
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Pregunta 0 de 0</div>
             </div>
 
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+            <div class="quiz-body">
+                <div id="questionsContainer"></div>
+
+                <button class="submit-btn" id="submitBtn">Enviar Respuestas</button>
             </div>
-            <div class="progress-text" id="progressText">Pregunta 0 de 0</div>
-
-            <div id="questionsContainer"></div>
-
-            <button class="submit-btn" id="submitBtn">Enviar Respuestas</button>
         </div>
 
         <div class="results" id="results"></div>
@@ -405,10 +421,30 @@ Correcta: a
         let questions = [];
         let userAnswers = {};
 
+        // Intentar cargar quiz.md automáticamente
+        window.addEventListener('DOMContentLoaded', function() {
+            fetch('quiz.md')
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    }
+                    throw new Error('quiz.md no encontrado');
+                })
+                .then(content => {
+                    document.getElementById('fileName').textContent = 'quiz.md (cargado automáticamente)';
+                    document.getElementById('fileName').style.color = '#4caf50';
+                    parseMarkdown(content);
+                })
+                .catch(error => {
+                    console.log('No se encontró quiz.md, mostrando opción de carga manual');
+                });
+        });
+
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileName').style.color = '#4caf50';
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const content = e.target.result;
